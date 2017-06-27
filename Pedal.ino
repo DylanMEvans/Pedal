@@ -7,7 +7,8 @@ int POT0, POT1, POT2, out_DAC0, out_DAC1; //variables for 3 pots (ADC8, ADC9, AD
 int LED = 3;
 int FOOTSWITCH = 7; 
 int TOGGLE = 2; 
- 
+
+int freq;
 void setup()
 {
   //ADC Configuration
