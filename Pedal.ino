@@ -1,3 +1,5 @@
+
+
 class BoardTester
 {
   int in_ADC0, in_ADC1;  //variables for 2 ADCs values (ADC0, ADC1)
@@ -25,7 +27,7 @@ class BoardTester
   void update()
   {
    // for(int i = 0; i < 2000000; i++);
-   delay(1000);
+   //delay(250);
   
     
     //Read the ADCs
@@ -33,21 +35,26 @@ class BoardTester
     in_ADC0=ADC->ADC_CDR[7];               // read data from ADC0
     in_ADC1=ADC->ADC_CDR[6];               // read data from ADC1  
   
-  //  String str = "in_ADC0: ";
-  //  str = str + in_ADC0 + "\nin_ADC1: " + in_ADC1 + "\n\n";
-  //  Serial.print(str);
-    POT0=ADC->ADC_CDR[10];                 // read data from ADC8        
+
+    //Add volume feature with POT2
+//  String str1 = " POT2: ";
+//  str1 = str1 + POT2 + "  ";
+//  Serial.print(str1);
+  
+ //  String str = " in_ADC0: ";
+ //  str = str + in_ADC0 + "  in_ADC1: " + in_ADC1 + "\n";
+ //  Serial.print(str);
+    POT0=ADC->ADC_CDR[11];                 // read data from ADC8        
     POT1=ADC->ADC_CDR[11];                 // read data from ADC9   
     POT2=ADC->ADC_CDR[12];                 // read data from ADC10 
        
-    //Add volume feature with POT2
-  String str1 = "POT2: ";
-  str1 = str1 + POT2 + "  ";
-  Serial.print(str1);
-  if(cnt++ ==5) {cnt=1; str1="\n"; Serial.print(str1);}
+  // if(cnt++ ==5) {cnt=1; str1="\n"; Serial.print(str1);}
     
     out_DAC0=map(in_ADC0,0,4095,1,POT2);
     out_DAC1=map(in_ADC1,0,4095,1,POT2);
+
+    //out_DAC0 = in_ADC0;
+    //out_DAC1 = in_ADC1;
      
     //Write the DACs
     dacc_set_channel_selection(DACC_INTERFACE, 0);       //select DAC channel 0
