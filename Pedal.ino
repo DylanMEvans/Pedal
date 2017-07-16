@@ -1,3 +1,5 @@
+#define MAX_DATA 4000
+
 
   int in_ADC0, in_ADC1;  //variables for 2 ADCs values (ADC0, ADC1)
   int POT0, POT1, POT2, out_DAC0, out_DAC1; //variables for 3 pots (ADC8, ADC9, ADC10)
@@ -5,12 +7,16 @@
   int FOOTSWITCH = 7; 
   int TOGGLE = 2; 
 
+  
+  int inDataCount = 0;
+  int outDataCount = 0;
+  int data0[MAX_DATA];
+  int data1[MAX_DATA];
+
+
 class BoardTester
 {
-
-  int cnt = 1;
-
-  public:
+ public:
   BoardTester()
   {
     Serial.print("BoardTester constructed.\n");
@@ -45,7 +51,80 @@ class BoardTester
   }
 };
 
-BoardTester *pCurrentTask;
+class Effect1
+{
+
+
+  public:
+  Effect1()
+  {
+    inDataCount = 0;
+    outDataCount = 0;
+    Serial.print("Effect1 constructed.\n");
+//    for (int i = 0; i< MAX_DATA; i++) {
+//      data0[i] = 0;
+//      data1[i] = 0;
+//    }
+  }
+
+   void printDetails() {
+    //  String str1 = " POT2: ";
+//  str1 = str1 + POT2 + "  ";
+//  Serial.print(str1);
+  
+ //  String str = " in_ADC0: ";
+ //  str = str + in_ADC0 + "  in_ADC1: " + in_ADC1 + "\n";
+ //  Serial.print(str);
+       
+  // if(cnt++ ==5) {cnt=1; str1="\n"; Serial.print(str1);}
+
+  String str1 = " inDataCount: ";
+  str1 = str1 + inDataCount + " outDataCount: " + outDataCount + "\n";
+  Serial.print(str1);
+    
+   }
+
+  void update()
+  {
+   // for(int i = 0; i < 2000000; i++);
+   //delay(250);
+  
+
+    data0[inDataCount] = in_ADC0;
+   data1[inDataCount] = in_ADC1;
+
+//    out_DAC0=map(data0[outDataCount],0,4095,1,POT2);
+//    out_DAC1=map(data1[outDataCount],0,4095,1,POT2);
+    
+    
+      out_DAC0 = data0[inDataCount];
+   out_DAC1 = data1[inDataCount];
+  //out_DAC0 = in_ADC0;
+   // out_DAC1 = in_ADC1;
+
+    
+    inDataCount++;
+    if (inDataCount >= MAX_DATA){
+         inDataCount=0;
+    }
+    outDataCount++;
+    if (outDataCount >= MAX_DATA)  {
+        outDataCount=0;
+    }
+
+    
+
+    //Write the DACs
+    dacc_set_channel_selection(DACC_INTERFACE, 0);       //select DAC channel 0
+    dacc_write_conversion_data(DACC_INTERFACE, out_DAC0);//write on DAC
+    dacc_set_channel_selection(DACC_INTERFACE, 1);       //select DAC channel 1
+    dacc_write_conversion_data(DACC_INTERFACE, out_DAC1);//write on DAC
+    
+  }
+};
+
+//BoardTester *pCurrentTask;
+Effect1 *pCurrentTask;
 void startTimer()
 {
   pmc_set_writeprotect(false);
@@ -57,12 +136,14 @@ void startTimer()
   TC1->TC_CHANNEL[1].TC_IDR=~TC_IER_CPCS;
   NVIC_EnableIRQ(TC4_IRQn);
 
+  //delay(1000);
+
   
 }
 
 void setup()
 {
- Serial.begin(250000);
+ Serial.begin(9600);
  delay(250);
  
   //ADC Configuration
@@ -77,16 +158,49 @@ void setup()
   analogWrite(DAC1,0);  // Enables DAC0
   
   //Serial.print("setup");
-  pCurrentTask = new BoardTester();
-  //pCurrentTask = new Reverb();
+
+  //pCurrentTask = new Effect1();
+  //pCurrentTask = new BoardTester();
+
   startTimer();
+  
 }
-int cnt = 0;
+void readADCs()
+{
+  //Read the ADCs
+  while((ADC->ADC_ISR & 0x1CC0)!=0x1CC0);// wait for ADC 0, 1, 8, 9, 10 conversion complete.
+  in_ADC0=ADC->ADC_CDR[7];               // read data from ADC0
+  in_ADC1=ADC->ADC_CDR[6];               // read data from ADC1  
+  POT0=ADC->ADC_CDR[10];                 // read data from ADC8        
+  POT1=ADC->ADC_CDR[11];                 // read data from ADC9   
+  POT2=ADC->ADC_CDR[12];                 // read data from ADC10 
+
+}
+
 void loop()
 {
-  String str32 = " loop";
-  Serial.print(str32 + cnt);
-   if(cnt++ == 10) {cnt=1; str32="\n"; Serial.print(str32);}
+//  String str32 = " loop";
+//  Serial.print(str32 + cnt);
+   //if(cnt++ == 10) {cnt=1; str32="\n"; Serial.print(str32);}
+
+//     
+//     delay(500);
+ 
+//   if(cnt == 1) {
+//      pCurrentTask->printDetails();
+//
+//   }
+//
+//   if (cnt++ == 5000) cnt = 1;
+//
+   
+ //readADCs();
+  while((ADC->ADC_ISR & 0x1CC0)!=0x1CC0);// wait for ADC 0, 1, 8, 9, 10 conversion complete.
+  in_ADC0=ADC->ADC_CDR[7];               // read data from ADC0
+  in_ADC1=ADC->ADC_CDR[6];               // read data from ADC1  
+  POT0=ADC->ADC_CDR[10];                 // read data from ADC8        
+  POT1=ADC->ADC_CDR[11];                 // read data from ADC9   
+  POT2=ADC->ADC_CDR[12];                 // read data from ADC10 
 
 }
 
@@ -95,15 +209,42 @@ void TC4_Handler()
   //Serial.print("T");
   TC_GetStatus(TC1,1);//Reset timer interrupt
   
-  //Read the ADCs
-  while((ADC->ADC_ISR & 0x1CC0)!=0x1CC0);// wait for ADC 0, 1, 8, 9, 10 conversion complete.
-  in_ADC0=ADC->ADC_CDR[7];               // read data from ADC0
-  in_ADC1=ADC->ADC_CDR[6];               // read data from ADC1  
-  POT0=ADC->ADC_CDR[11];                 // read data from ADC8        
-  POT1=ADC->ADC_CDR[11];                 // read data from ADC9   
-  POT2=ADC->ADC_CDR[12];                 // read data from ADC10 
   
-  pCurrentTask->update();
+ // pCurrentTask->update();
+
+  
+    data0[inDataCount] = in_ADC0;
+   data1[inDataCount] = in_ADC1;
+
+//    out_DAC0=map(data0[outDataCount],0,4095,1,POT2);
+//    out_DAC1=map(data1[outDataCount],0,4095,1,POT2);
+    
+    
+      out_DAC0 = data0[inDataCount];
+   out_DAC1 = data1[inDataCount];
+  //out_DAC0 = in_ADC0;
+   // out_DAC1 = in_ADC1;
+
+    
+    inDataCount++;
+    if (inDataCount >= MAX_DATA){
+         inDataCount=0;
+    }
+    outDataCount++;
+    if (outDataCount >= MAX_DATA)  {
+        outDataCount=0;
+    }
+
+
+    
+    //Write the DACs
+    dacc_set_channel_selection(DACC_INTERFACE, 0);       //select DAC channel 0
+    dacc_write_conversion_data(DACC_INTERFACE, out_DAC0);//write on DAC
+    dacc_set_channel_selection(DACC_INTERFACE, 1);       //select DAC channel 1
+    dacc_write_conversion_data(DACC_INTERFACE, out_DAC1);//write on DAC
+  
+
 }
+
 
 
