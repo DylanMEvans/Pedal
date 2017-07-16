@@ -1,4 +1,4 @@
-#define MAX_DATA 4000
+
 
 
   int in_ADC0, in_ADC1;  //variables for 2 ADCs values (ADC0, ADC1)
@@ -7,11 +7,7 @@
   int FOOTSWITCH = 7; 
   int TOGGLE = 2; 
 
-  
-  int inDataCount = 0;
-  int outDataCount = 0;
-  int data0[MAX_DATA];
-  int data1[MAX_DATA];
+  int cnt=0;
 
 
 class BoardTester
@@ -53,7 +49,11 @@ class BoardTester
 
 class Effect1
 {
-
+  static const int MAX_DATA=20000;
+  int inDataCount = 0;
+  int outDataCount = 0;
+  short data0[MAX_DATA];
+  short data1[MAX_DATA];
 
   public:
   Effect1()
@@ -159,7 +159,7 @@ void setup()
   
   //Serial.print("setup");
 
-  //pCurrentTask = new Effect1();
+pCurrentTask = new Effect1();
   //pCurrentTask = new BoardTester();
 
   startTimer();
@@ -210,39 +210,39 @@ void TC4_Handler()
   TC_GetStatus(TC1,1);//Reset timer interrupt
   
   
- // pCurrentTask->update();
+  pCurrentTask->update();
 
-  
-    data0[inDataCount] = in_ADC0;
-   data1[inDataCount] = in_ADC1;
-
-//    out_DAC0=map(data0[outDataCount],0,4095,1,POT2);
-//    out_DAC1=map(data1[outDataCount],0,4095,1,POT2);
-    
-    
-      out_DAC0 = data0[inDataCount];
-   out_DAC1 = data1[inDataCount];
-  //out_DAC0 = in_ADC0;
-   // out_DAC1 = in_ADC1;
-
-    
-    inDataCount++;
-    if (inDataCount >= MAX_DATA){
-         inDataCount=0;
-    }
-    outDataCount++;
-    if (outDataCount >= MAX_DATA)  {
-        outDataCount=0;
-    }
-
-
-    
-    //Write the DACs
-    dacc_set_channel_selection(DACC_INTERFACE, 0);       //select DAC channel 0
-    dacc_write_conversion_data(DACC_INTERFACE, out_DAC0);//write on DAC
-    dacc_set_channel_selection(DACC_INTERFACE, 1);       //select DAC channel 1
-    dacc_write_conversion_data(DACC_INTERFACE, out_DAC1);//write on DAC
-  
+//  
+//    data0[inDataCount] = in_ADC0;
+//   data1[inDataCount] = in_ADC1;
+//
+////    out_DAC0=map(data0[outDataCount],0,4095,1,POT2);
+////    out_DAC1=map(data1[outDataCount],0,4095,1,POT2);
+//    
+//    
+//      out_DAC0 = data0[inDataCount];
+//   out_DAC1 = data1[inDataCount];
+//  //out_DAC0 = in_ADC0;
+//   // out_DAC1 = in_ADC1;
+//
+//    
+//    inDataCount++;
+//    if (inDataCount >= MAX_DATA){
+//         inDataCount=0;
+//    }
+//    outDataCount++;
+//    if (outDataCount >= MAX_DATA)  {
+//        outDataCount=0;
+//    }
+//
+//
+//    
+//    //Write the DACs
+//    dacc_set_channel_selection(DACC_INTERFACE, 0);       //select DAC channel 0
+//    dacc_write_conversion_data(DACC_INTERFACE, out_DAC0);//write on DAC
+//    dacc_set_channel_selection(DACC_INTERFACE, 1);       //select DAC channel 1
+//    dacc_write_conversion_data(DACC_INTERFACE, out_DAC1);//write on DAC
+//  
 
 }
 
